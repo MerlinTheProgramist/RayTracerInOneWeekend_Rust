@@ -19,6 +19,7 @@ impl Vec3 {
     pub fn lenght(&self) -> Num {
         self.lenght_sqr().sqrt()
     }
+    pub const ZERO = Vec3::new(0.,0.,0.);
 }
 
 impl ops::Neg for Vec3 {
