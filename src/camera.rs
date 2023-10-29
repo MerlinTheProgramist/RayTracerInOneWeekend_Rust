@@ -61,9 +61,12 @@ impl Camera {
         if let Some(rec) = world.hit(r, Interval::new(0.001, Ray::INFINITY)) {
             // let direction = Vec3::random_on_hemisphere(&rec.normal);
             // Lambertial distribution
-            let direction = rec.normal + Vec3::random_unit_sphere();
-
-            return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
+            // let direction = rec.normal + Vec3::random_unit_sphere();
+            if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec) {
+                return attenuation * &self.ray_color(&scattered, depth - 1, world);
+            }
+            return Color::ZERO;
+            // return 0.5 * &self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
             // return 0.5 * (rec.normal + Color::new(1., 1., 1.));
         }
 

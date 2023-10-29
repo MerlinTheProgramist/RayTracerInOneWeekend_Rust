@@ -56,6 +56,12 @@ impl Vec3 {
     pub fn lenght(&self) -> Num {
         self.lenght_sqr().sqrt()
     }
+
+    pub fn near_zero(&self) -> bool {
+        const S: Num = 1e-8;
+        (self.x.abs() < S) && (self.y.abs() < S) && (self.z.abs() < S)
+    }
+
     pub const ZERO: Vec3 = Vec3 {
         x: 0.,
         y: 0.,
@@ -135,6 +141,12 @@ impl ops::Sub for Vec3 {
     }
 }
 
+impl ops::Mul<&Vec3> for Vec3 {
+    type Output = Self;
+    fn mul(self, u: &Vec3) -> Self::Output {
+        Vec3::new(self.x * u.x, self.y * u.y, self.z * u.z)
+    }
+}
 impl ops::Mul<Num> for Vec3 {
     type Output = Self;
     fn mul(self, t: Num) -> Self::Output {
@@ -145,6 +157,12 @@ impl ops::Mul<Vec3> for Num {
     type Output = Vec3;
     fn mul(self, v: Vec3) -> Self::Output {
         v * self
+    }
+}
+impl ops::Mul<&Vec3> for Num {
+    type Output = Vec3;
+    fn mul(self, v: &Vec3) -> Self::Output {
+        *v * self
     }
 }
 impl ops::Div<Num> for Vec3 {
@@ -168,6 +186,10 @@ pub fn cross(v: &Vec3, u: &Vec3) -> Vec3 {
 
 pub fn normalize(v: &Vec3) -> Vec3 {
     *v / v.lenght()
+}
+
+pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+    *v - 2. * dot(v, n) * n
 }
 
 pub type Point3 = Vec3;

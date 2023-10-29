@@ -1,16 +1,20 @@
+use std::rc::Rc;
+
 use super::{HitRecord, Hittable};
-use crate::{interval::Interval, ray::Ray, vec3::*, Num};
+use crate::{interval::Interval, material::Material, ray::Ray, vec3::*, Num};
 
 pub struct Sphere {
     center: Point3,
     radius: Num,
+    mat: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(c: Point3, r: Num) -> Sphere {
+    pub fn new(c: Point3, r: Num, m: Rc<dyn Material>) -> Sphere {
         Sphere {
             center: c,
             radius: r,
+            mat: m,
         }
     }
 }
@@ -38,7 +42,7 @@ impl Hittable for Sphere {
         }
 
         // save hit record
-        let mut rec = HitRecord::new(r.at(root), root);
+        let mut rec = HitRecord::new(r.at(root), root, self.mat.clone());
         let outward_normal = (rec.p - self.center) / self.radius; // normalized by dividing by radius
         rec.set_face_normal(r, &outward_normal);
 

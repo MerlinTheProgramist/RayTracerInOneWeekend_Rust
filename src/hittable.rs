@@ -1,17 +1,20 @@
-use crate::{interval::Interval, ray::Ray, vec3::*, Num};
+use std::rc::Rc;
+
+use crate::{interval::Interval, material::*, ray::Ray, vec3::*, Num};
 
 pub mod hittable_list;
 pub mod sphere;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
+    pub mat: Rc<dyn Material>,
     pub t: Num,
     pub front_face: bool,
 }
 impl HitRecord {
-    pub fn new(_p: Point3, _t: Num) -> HitRecord {
+    pub fn new(_p: Point3, _t: Num, _m: Rc<dyn Material>) -> HitRecord {
         HitRecord {
             p: _p,
             normal: Vec3 {
@@ -19,6 +22,7 @@ impl HitRecord {
                 y: 0f64,
                 z: 0f64,
             },
+            mat: _m,
             t: _t,
             front_face: true,
         }

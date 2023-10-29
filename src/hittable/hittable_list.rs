@@ -28,8 +28,8 @@ impl Hittable for HittableList {
         let mut closest_so_far = ray_t.max;
 
         for object in self.objects.iter() {
-            if let Some(h) = object.hit(r, Interval::new(ray_t.min, closest_so_far)) {
-                hit = Some(h);
+            if let Some(h) = &object.hit(r, Interval::new(ray_t.min, closest_so_far)) {
+                hit = Some(h.clone());
                 closest_so_far = h.t;
             }
         }
