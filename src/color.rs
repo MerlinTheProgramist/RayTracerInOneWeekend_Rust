@@ -17,12 +17,21 @@ pub fn write_color<W: std::io::Write>(f: &mut W, pixel_color: &Color, samplex_pe
         min: 0.000,
         max: 0.999,
     };
-    write!(
-        f,
-        "{} {} {}\n",
-        (255.999 * INTENSITY.clamp(r)) as i32,
-        (255.999 * INTENSITY.clamp(g)) as i32,
-        (255.999 * INTENSITY.clamp(b)) as i32
+    // write!(
+    //     f,
+    //     "{} {} {}\n",
+    //     (255.999 * INTENSITY.clamp(r)) as i32,
+    //     (255.999 * INTENSITY.clamp(g)) as i32,
+    //     (255.999 * INTENSITY.clamp(b)) as i32
+    // )
+    // .unwrap();
+    f.write_all(
+        &[
+            ((255.999 * INTENSITY.clamp(r)) as i32).to_ne_bytes(),
+            ((255.999 * INTENSITY.clamp(g)) as i32).to_ne_bytes(),
+            ((255.999 * INTENSITY.clamp(b)) as i32).to_ne_bytes(),
+        ]
+        .concat(),
     )
     .unwrap();
 }

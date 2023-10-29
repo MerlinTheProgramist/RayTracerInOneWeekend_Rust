@@ -57,7 +57,16 @@ impl Camera {
     pub fn render<W: Write>(&mut self, f: &mut W, world: &dyn Hittable) {
         self.initialize();
 
-        write!(f, "P3\n{} {} \n255\n", self.image_width, self.image_height).unwrap();
+        write!(f, "P6").unwrap();
+        // write!(f, "{} {} \n255\n", self.image_width, self.image_height).unwrap();
+        f.write_all(
+            &([
+                self.image_width.to_ne_bytes(),
+                self.image_height.to_ne_bytes(),
+            ]
+            .concat()),
+        )
+        .unwrap();
 
         for j in 0..self.image_height {
             for i in 0..self.image_width {
