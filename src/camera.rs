@@ -20,6 +20,9 @@ pub struct Camera {
     pub lookat: Point3,   // Point camera is looking at
     pub vup: Vec3,        // Camera-relative "up" direction
 
+    pub defocus_angle: Num,
+    pub focus_dist: Num,
+
     image_height: i32,   // Rendered image heihgt
     center: Point3,      // Camera center
     pixel00_loc: Point3, // Location of pixel 0,0
@@ -28,6 +31,9 @@ pub struct Camera {
     u: Vec3,             // Camera frame basis vectors
     v: Vec3,
     w: Vec3,
+
+    defocus_disk_u: Vec3,
+    defocus_disk_v: Vec3,
 }
 
 impl Camera {
@@ -43,6 +49,8 @@ impl Camera {
             lookfrom: Vec3::new(0., 0., -1.),
             lookat: Vec3::ZERO,
             vup: Vec3::new(0., 1., 0.),
+            defocus_angle: 0.,
+            focus_dist: 10.,
 
             center: Vec3::ZERO,
             pixel00_loc: Vec3::ZERO,
@@ -51,22 +59,16 @@ impl Camera {
             u: Vec3::ZERO,
             v: Vec3::ZERO,
             w: Vec3::ZERO,
+
+            defocus_disk_u: Vec3::ZERO,
+            defocus_disk_v: Vec3::ZERO,
         }
     }
 
     pub fn render<W: Write>(&mut self, f: &mut W, world: &dyn Hittable) {
         self.initialize();
 
-        write!(f, "P6").unwrap();
-        // write!(f, "{} {} \n255\n", self.image_width, self.image_height).unwrap();
-        f.write_all(
-            &([
-                self.image_width.to_ne_bytes(),
-                self.image_height.to_ne_bytes(),
-            ]
-            .concat()),
-        )
-        .unwrap();
+        write!(f, "P6\n{} {}\n255\n", self.image_width, self.image_height).unwrap();
 
         for j in 0..self.image_height {
             for i in 0..self.image_width {
@@ -106,7 +108,11 @@ impl Camera {
             self.pixel00_loc + (i as Num * self.pixel_delta_u) + (j as Num * self.pixel_delta_v);
         let pixel_sample = pixel_center + self.pixel_sample_square();
 
-        let ray_origin = self.center;
+        let ray_origin = if self.defocus_angle <= 0. {
+            self.center
+        } else {
+            self.defocus_disk_sample()
+        };
         let ray_direction = pixel_sample - ray_origin;
 
         return Ray::new(ray_origin, ray_direction);
@@ -125,9 +131,8 @@ impl Camera {
         self.center = self.lookfrom;
 
         // Determine viewport dimensions
-        let focal_lenght = (self.lookfrom - self.lookat).lenght();
         let h = (self.vfov / 2.).tan();
-        let viewport_height = 2.0 * h * focal_lenght;
+        let viewport_height = 2.0 * h * self.focus_dist;
         let viewport_width = viewport_height * (self.image_width as Num / self.image_height as Num);
 
         // Calculate the u,v,w unit basis vectors for the camera coordicate frame
@@ -145,7 +150,17 @@ impl Camera {
 
         // location of the uper left pixel
         let viewport_upper_left =
-            self.center - (focal_lenght * self.w) - viewport_u / 2. - viewport_v / 2.;
+            self.center - (self.focus_dist * self.w) - viewport_u / 2. - viewport_v / 2.;
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
+
+        // Calculate the camera defocus disk basis vectors
+        let defocus_radius = self.focus_dist * (self.defocus_angle / 2.).tan();
+        self.defocus_disk_u = self.u * defocus_radius;
+        self.defocus_disk_v = self.v * defocus_radius;
+    }
+
+    fn defocus_disk_sample(&self) -> Vec3 {
+        let p = Vec3::random_unit_in_disk();
+        self.center + p.x * self.defocus_disk_u + p.y * self.defocus_disk_v
     }
 }

@@ -30,6 +30,7 @@ impl Vec3 {
             z: min + rand.gen::<Num>() * max,
         }
     }
+    // Maybe it should be random_IN_unit_sphere, therefore not normalized
     pub fn random_unit_sphere() -> Vec3 {
         let mut rand = rand::thread_rng();
 
@@ -47,6 +48,17 @@ impl Vec3 {
             res
         } else {
             -res
+        }
+    }
+    pub fn random_unit_in_disk() -> Vec3 {
+        let mut rand = rand::thread_rng();
+        // let theta = rand.gen::<Num>() * std::f64::consts::PI * 2.;
+        // Vec3::new(theta.cos(), theta.sin(), 0.) * rand.gen::<Num>()
+        loop {
+            let p = Vec3::new(rand.gen::<Num>() * 2. - 1., rand.gen::<Num>() * 2. - 1., 0.);
+            if p.lenght_sqr() < 1. {
+                return p;
+            }
         }
     }
 

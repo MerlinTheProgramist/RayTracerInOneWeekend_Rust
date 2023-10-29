@@ -65,6 +65,9 @@ fn main() {
     cam.lookat = Point3::new(0., 0., -1.);
     cam.vup = Vec3::new(0., 1., 0.);
 
+    cam.defocus_angle = std::f64::consts::PI / 18.;
+    cam.focus_dist = 3.4;
+
     let mut f = fs::File::create("./render.ppm").unwrap();
     cam.render(&mut f, &world);
     drop(f);
