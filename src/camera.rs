@@ -1,12 +1,19 @@
+use crate::{
+    color::{write_color, Color},
+    hittable::Hittable,
+    interval::Interval,
+    ray::Ray,
+    vec3::*,
+    Num,
+};
 use rand::Rng;
 use std::cmp::max;
-
-use crate::{hittable::Hittable, interval::Interval, ray::Ray, vec3::*, Num};
 
 pub struct Camera {
     pub aspect_ratio: Num,
     pub image_width: i32,
     pub samples_per_pixel: i32,
+    pub max_depth: i32,
     image_height: i32,
     center: Point3,
     pixel00_loc: Point3,
@@ -21,6 +28,7 @@ impl Camera {
             image_width: 100,
             samples_per_pixel: 10,
             image_height: 100,
+            max_depth: 10,
             center: Vec3::ZERO,
             pixel00_loc: Vec3::ZERO,
             pixel_delta_u: Vec3::ZERO,
@@ -39,16 +47,24 @@ impl Camera {
                 // multiple samples per pixel
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&r, world)
+                    pixel_color += self.ray_color(&r, self.max_depth, world)
                 }
                 write_color(&pixel_color, self.samples_per_pixel);
             }
         }
     }
 
-    fn ray_color(&self, r: &Ray, world: &dyn Hittable) -> Color {
-        if let Some(rec) = world.hit(r, Interval::new(0., Ray::INFINITY)) {
-            return 0.5 * (rec.normal + Color::new(1., 1., 1.));
+    fn ray_color(&self, r: &Ray, depth: i32, world: &dyn Hittable) -> Color {
+        if depth <= 0 {
+            return Color::ZERO;
+        }
+        if let Some(rec) = world.hit(r, Interval::new(0.001, Ray::INFINITY)) {
+            // let direction = Vec3::random_on_hemisphere(&rec.normal);
+            // Lambertial distribution
+            let direction = rec.normal + Vec3::random_unit_sphere();
+
+            return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
+            // return 0.5 * (rec.normal + Color::new(1., 1., 1.));
         }
 
         let normal = normalize(r.direction());

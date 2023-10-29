@@ -1,5 +1,6 @@
+use rand::Rng;
 
-use crate::{interval::Interval, Num};
+use crate::Num;
 use std::{fmt::Display, ops};
 
 #[derive(Copy, Clone)]
@@ -27,6 +28,25 @@ impl Vec3 {
             x: min + rand.gen::<Num>() * max,
             y: min + rand.gen::<Num>() * max,
             z: min + rand.gen::<Num>() * max,
+        }
+    }
+    pub fn random_unit_sphere() -> Vec3 {
+        let mut rand = rand::thread_rng();
+
+        let theta = 2. * std::f64::consts::PI * rand.gen::<Num>();
+        let phi = (1. - 2. * rand.gen::<Num>()).acos();
+        Vec3 {
+            x: phi.sin() * theta.cos(),
+            y: phi.sin() * theta.sin(),
+            z: phi.cos(),
+        }
+    }
+    pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+        let res = Vec3::random_unit_sphere();
+        if dot(&res, normal) > 0.0 {
+            res
+        } else {
+            -res
         }
     }
 
@@ -151,23 +171,3 @@ pub fn normalize(v: &Vec3) -> Vec3 {
 }
 
 pub type Point3 = Vec3;
-
-pub type Color = Vec3;
-
-pub fn write_color(pixel_color: &Color, samplex_per_pixel: i32) {
-    let scale = 1.0 / samplex_per_pixel as Num;
-    let r = pixel_color.x * scale;
-    let g = pixel_color.y * scale;
-    let b = pixel_color.z * scale;
-
-    const INTENSITY: Interval = Interval {
-        min: 0.000,
-        max: 0.999,
-    };
-    print!(
-        "{} {} {}\n",
-        (255.999 * INTENSITY.clamp(r)) as i32,
-        (255.999 * INTENSITY.clamp(g)) as i32,
-        (255.999 * INTENSITY.clamp(b)) as i32
-    );
-}

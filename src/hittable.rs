@@ -5,10 +5,10 @@ pub mod sphere;
 
 #[derive(Clone, Copy)]
 pub struct HitRecord {
-    p: Point3,
+    pub p: Point3,
     pub normal: Vec3,
     pub t: Num,
-    front_face: bool,
+    pub front_face: bool,
 }
 impl HitRecord {
     pub fn new(_p: Point3, _t: Num) -> HitRecord {
