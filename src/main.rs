@@ -6,6 +6,7 @@ pub mod material;
 pub mod ray;
 pub mod vec3;
 
+use std::fs;
 use std::rc::Rc;
 
 use camera::Camera;
@@ -64,5 +65,7 @@ fn main() {
     cam.lookat = Point3::new(0., 0., -1.);
     cam.vup = Vec3::new(0., 1., 0.);
 
-    cam.render(&world);
+    let mut f = fs::File::create("./render.ppm").unwrap();
+    cam.render(&mut f, &world);
+    drop(f);
 }

@@ -7,7 +7,7 @@ fn linear_to_gamma(linear_component: Num) -> Num {
     linear_component.sqrt()
 }
 
-pub fn write_color(pixel_color: &Color, samplex_per_pixel: i32) {
+pub fn write_color<W: std::io::Write>(f: &mut W, pixel_color: &Color, samplex_per_pixel: i32) {
     let scale = 1.0 / samplex_per_pixel as Num;
     let r = linear_to_gamma(pixel_color.x * scale);
     let g = linear_to_gamma(pixel_color.y * scale);
@@ -17,10 +17,12 @@ pub fn write_color(pixel_color: &Color, samplex_per_pixel: i32) {
         min: 0.000,
         max: 0.999,
     };
-    print!(
+    write!(
+        f,
         "{} {} {}\n",
         (255.999 * INTENSITY.clamp(r)) as i32,
         (255.999 * INTENSITY.clamp(g)) as i32,
         (255.999 * INTENSITY.clamp(b)) as i32
-    );
+    )
+    .unwrap();
 }

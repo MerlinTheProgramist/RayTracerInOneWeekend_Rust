@@ -7,7 +7,7 @@ use crate::{
     Num,
 };
 use rand::Rng;
-use std::cmp::max;
+use std::{cmp::max, io::Write};
 
 pub struct Camera {
     pub aspect_ratio: Num,      // Ratio of image width over height
@@ -54,10 +54,10 @@ impl Camera {
         }
     }
 
-    pub fn render(&mut self, world: &dyn Hittable) {
+    pub fn render<W: Write>(&mut self, f: &mut W, world: &dyn Hittable) {
         self.initialize();
 
-        print!("P3\n{} {} \n255\n", self.image_width, self.image_height);
+        write!(f, "P3\n{} {} \n255\n", self.image_width, self.image_height).unwrap();
 
         for j in 0..self.image_height {
             for i in 0..self.image_width {
@@ -67,7 +67,7 @@ impl Camera {
                     let r = self.get_ray(i, j);
                     pixel_color += self.ray_color(&r, self.max_depth, world)
                 }
-                write_color(&pixel_color, self.samples_per_pixel);
+                write_color(f, &pixel_color, self.samples_per_pixel);
             }
         }
     }
