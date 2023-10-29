@@ -75,6 +75,12 @@ impl ops::Neg for Vec3 {
         Vec3::new(-self.x, -self.y, -self.z)
     }
 }
+impl ops::Neg for &Vec3 {
+    type Output = Vec3;
+    fn neg(self) -> Self::Output {
+        Vec3::new(-self.x, -self.y, -self.z)
+    }
+}
 
 impl ops::Index<i32> for Vec3 {
     type Output = Num;
@@ -190,6 +196,13 @@ pub fn normalize(v: &Vec3) -> Vec3 {
 
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     *v - 2. * dot(v, n) * n
+}
+#[inline(always)]
+pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: Num) -> Vec3 {
+    let cos_theta = Num::min(dot(&-uv, n), 1.0);
+    let r_out_perp = etai_over_etat * (*uv + (cos_theta * n));
+    let r_out_parallel = (1.0 - r_out_perp.lenght_sqr()).abs().sqrt() * -n;
+    r_out_perp + r_out_parallel
 }
 
 pub type Point3 = Vec3;
