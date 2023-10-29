@@ -1,4 +1,5 @@
-use crate::Num;
+
+use crate::{interval::Interval, Num};
 use std::{fmt::Display, ops};
 
 #[derive(Copy, Clone)]
@@ -12,6 +13,22 @@ impl Vec3 {
     pub fn new(x: Num, y: Num, z: Num) -> Vec3 {
         Vec3 { x, y, z }
     }
+    pub fn random() -> Vec3 {
+        let mut rand = rand::thread_rng();
+        Vec3 {
+            x: rand.gen::<Num>(),
+            y: rand.gen::<Num>(),
+            z: rand.gen::<Num>(),
+        }
+    }
+    pub fn random_range(min: Num, max: Num) -> Vec3 {
+        let mut rand = rand::thread_rng();
+        Vec3 {
+            x: min + rand.gen::<Num>() * max,
+            y: min + rand.gen::<Num>() * max,
+            z: min + rand.gen::<Num>() * max,
+        }
+    }
 
     pub fn lenght_sqr(&self) -> Num {
         self.x * self.x + self.y * self.y + self.z * self.z
@@ -19,7 +36,11 @@ impl Vec3 {
     pub fn lenght(&self) -> Num {
         self.lenght_sqr().sqrt()
     }
-    pub const ZERO = Vec3::new(0.,0.,0.);
+    pub const ZERO: Vec3 = Vec3 {
+        x: 0.,
+        y: 0.,
+        z: 0.,
+    };
 }
 
 impl ops::Neg for Vec3 {
@@ -133,13 +154,20 @@ pub type Point3 = Vec3;
 
 pub type Color = Vec3;
 
-impl Color {
-    pub fn write_color(&self) {
-        print!(
-            "{} {} {}\n",
-            (255.999 * self.x) as i32,
-            (255.999 * self.y) as i32,
-            (255.999 * self.z) as i32
-        );
-    }
+pub fn write_color(pixel_color: &Color, samplex_per_pixel: i32) {
+    let scale = 1.0 / samplex_per_pixel as Num;
+    let r = pixel_color.x * scale;
+    let g = pixel_color.y * scale;
+    let b = pixel_color.z * scale;
+
+    const INTENSITY: Interval = Interval {
+        min: 0.000,
+        max: 0.999,
+    };
+    print!(
+        "{} {} {}\n",
+        (255.999 * INTENSITY.clamp(r)) as i32,
+        (255.999 * INTENSITY.clamp(g)) as i32,
+        (255.999 * INTENSITY.clamp(b)) as i32
+    );
 }

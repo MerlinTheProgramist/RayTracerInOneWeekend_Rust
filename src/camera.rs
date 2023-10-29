@@ -1,3 +1,4 @@
+use rand::Rng;
 use std::cmp::max;
 
 use crate::{hittable::Hittable, interval::Interval, ray::Ray, vec3::*, Num};
@@ -5,6 +6,7 @@ use crate::{hittable::Hittable, interval::Interval, ray::Ray, vec3::*, Num};
 pub struct Camera {
     pub aspect_ratio: Num,
     pub image_width: i32,
+    pub samples_per_pixel: i32,
     image_height: i32,
     center: Point3,
     pixel00_loc: Point3,
@@ -17,6 +19,7 @@ impl Camera {
         Camera {
             aspect_ratio: 1.0,
             image_width: 100,
+            samples_per_pixel: 10,
             image_height: 100,
             center: Vec3::ZERO,
             pixel00_loc: Vec3::ZERO,
@@ -30,17 +33,15 @@ impl Camera {
 
         print!("P3\n{} {} \n255\n", self.image_width, self.image_height);
 
-        for i in 0..self.image_height {
-            for j in 0..self.image_width {
-                let pixel_center = self.pixel00_loc
-                    + self.pixel_delta_v * i as Num
-                    + self.pixel_delta_u * j as Num;
-                let ray_direction = pixel_center - self.center;
-
-                let r = Ray::new(self.center, ray_direction);
-
-                let pixel_color = self.ray_color(&r, world);
-                pixel_color.write_color();
+        for j in 0..self.image_height {
+            for i in 0..self.image_width {
+                let mut pixel_color = Color::ZERO;
+                // multiple samples per pixel
+                for _sample in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    pixel_color += self.ray_color(&r, world)
+                }
+                write_color(&pixel_color, self.samples_per_pixel);
             }
         }
     }
@@ -53,6 +54,23 @@ impl Camera {
         let normal = normalize(r.direction());
         let a = 0.5 * (normal.y + 1.0);
         return (1. - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0);
+    }
+    fn get_ray(&self, i: i32, j: i32) -> Ray {
+        let pixel_center =
+            self.pixel00_loc + (i as Num * self.pixel_delta_u) + (j as Num * self.pixel_delta_v);
+        let pixel_sample = pixel_center + self.pixel_sample_square();
+
+        let ray_origin = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+
+        return Ray::new(ray_origin, ray_direction);
+    }
+    fn pixel_sample_square(&self) -> Vec3 {
+        let mut rng = rand::thread_rng();
+
+        let px = -0.5 + rng.gen::<Num>();
+        let py = -0.5 + rng.gen::<Num>();
+        (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 
     pub fn initialize(&mut self) {
@@ -76,6 +94,6 @@ impl Camera {
         // location of the uper left pixel
         let viewport_upper_left =
             self.center - Vec3::new(0., 0., focal_lenght) - viewport_u / 2. - viewport_v / 2.;
-        let pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
+        self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
     }
 }

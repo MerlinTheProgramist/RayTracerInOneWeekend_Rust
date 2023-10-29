@@ -24,6 +24,9 @@ impl Interval {
     pub fn surrounds(&self, x: Num) -> bool {
         self.min < x && x < self.max
     }
+    pub fn clamp(&self, x: Num) -> Num {
+        Num::min(Num::max(x, self.min), self.max)
+    }
 
     pub const EMPTY: Interval = Interval {
         min: Num::MAX,
