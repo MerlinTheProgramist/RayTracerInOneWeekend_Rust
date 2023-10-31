@@ -33,14 +33,25 @@ impl Vec3 {
     // Maybe it should be random_IN_unit_sphere, therefore not normalized
     pub fn random_unit_sphere() -> Vec3 {
         let mut rand = rand::thread_rng();
-
-        let theta = 2. * std::f64::consts::PI * rand.gen::<Num>();
-        let phi = (1. - 2. * rand.gen::<Num>()).acos();
+        // ON unit sphere
+        let theta = rand.gen_range((0.)..std::f64::consts::PI * 2.);
+        let phi = (rand.gen_range((-1.)..1.) as Num).acos();
         Vec3 {
             x: phi.sin() * theta.cos(),
             y: phi.sin() * theta.sin(),
             z: phi.cos(),
         }
+        // IN unit sphere
+        // loop {
+        //     let p = Vec3::new(
+        //         rand.gen_range((-1.)..1.),
+        //         rand.gen_range((-1.)..1.),
+        //         rand.gen_range((-1.)..1.),
+        //     );
+        //     if p.lenght_sqr() < 1. {
+        //         return p;
+        //     }
+        // }
     }
     pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
         let res = Vec3::random_unit_sphere();
@@ -55,7 +66,7 @@ impl Vec3 {
         // let theta = rand.gen::<Num>() * std::f64::consts::PI * 2.;
         // Vec3::new(theta.cos(), theta.sin(), 0.) * rand.gen::<Num>()
         loop {
-            let p = Vec3::new(rand.gen::<Num>() * 2. - 1., rand.gen::<Num>() * 2. - 1., 0.);
+            let p = Vec3::new(rand.gen_range((-1.)..1.), rand.gen_range((-1.)..1.), 0.);
             if p.lenght_sqr() < 1. {
                 return p;
             }
