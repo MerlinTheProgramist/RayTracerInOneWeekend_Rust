@@ -6,8 +6,12 @@ use crate::{
     vec3::*,
     Num,
 };
+use log::info;
 use rand::Rng;
 use std::{cmp::max, io::Write};
+
+use log;
+use pretty_env_logger;
 
 pub struct Camera {
     pub aspect_ratio: Num,      // Ratio of image width over height
@@ -68,10 +72,14 @@ impl Camera {
     pub fn render<W: Write>(&mut self, f: &mut W, world: &dyn Hittable) {
         self.initialize();
 
+        pretty_env_logger::init();
+
         write!(f, "P6\n{} {}\n255\n", self.image_width, self.image_height).unwrap();
 
         for j in 0..self.image_height {
             for i in 0..self.image_width {
+                info!("Processing pixel [{},{}]", j, i);
+
                 let mut pixel_color = Color::ZERO;
                 // multiple samples per pixel
                 for _sample in 0..self.samples_per_pixel {
