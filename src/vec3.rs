@@ -197,7 +197,7 @@ pub fn dot(v: &Vec3, u: &Vec3) -> Num {
 pub fn cross(v: &Vec3, u: &Vec3) -> Vec3 {
     Vec3::new(
         v.y * u.z - v.z * u.y,
-        v.z * u.z - v.x * u.x,
+        v.z * u.x - v.x * u.z,
         v.x * u.y - v.y * u.x,
     )
 }
