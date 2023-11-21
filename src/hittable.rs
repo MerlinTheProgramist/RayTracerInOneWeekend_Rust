@@ -1,20 +1,19 @@
-use std::rc::Rc;
-
 use crate::{interval::Interval, material::*, ray::Ray, vec3::*, Num};
+
+use self::sphere::Sphere;
 
 pub mod hittable_list;
 pub mod sphere;
 
-#[derive(Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
-    pub mat: Rc<dyn Material>,
+    pub mat: Box<Material>,
     pub t: Num,
     pub front_face: bool,
 }
 impl HitRecord {
-    pub fn new(_p: Point3, _t: Num, _m: Rc<dyn Material>) -> HitRecord {
+    pub fn new(_p: Point3, _t: Num, _m: Box<Material>) -> HitRecord {
         HitRecord {
             p: _p,
             normal: Vec3 {
@@ -37,6 +36,13 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord>;
+pub enum Hittable {
+    Sphere(Sphere),
+}
+impl Hittable {
+    pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
+        match self {
+            Self::Sphere(s) => s.hit(r, ray_t),
+        }
+    }
 }

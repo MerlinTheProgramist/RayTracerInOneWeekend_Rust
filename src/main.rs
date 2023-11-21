@@ -6,8 +6,7 @@ pub mod material;
 pub mod ray;
 pub mod vec3;
 
-use std::fs;
-use std::rc::Rc;
+use std::{fs, sync::Arc};
 
 use camera::Camera;
 use color::Color;
@@ -22,12 +21,12 @@ fn main() {
     let mut rand = rand::thread_rng();
     // World
     let mut world = HittableList::new();
-    let groud_material = Rc::new(materials::Lambertian::new(&Color::new(0.5, 0.5, 0.5)));
-    world.add(Box::new(Sphere::new(
+    let groud_material = Box::new(Material::new_lambertian(Color::new(0.5, 0.5, 0.5)));
+    world.add(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
-        groud_material.clone(),
-    )));
+        groud_material,
+    ));
 
     for a in -11..11 {
         for b in -11..11 {
@@ -42,40 +41,36 @@ fn main() {
                 if choose_mat < 0.8 {
                     // diffuse
                     let albedo = Color::random() * &Color::random();
-                    let sphere_material = Rc::new(materials::Lambertian::new(&albedo));
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    let sphere_material = Box::new(Material::new_lambertian(albedo));
+                    world.add(Sphere::new(center, 0.2, sphere_material));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Color::random_range(0.5, 1.);
                     let fuzz = rand.gen::<Num>();
-                    let sphere_material = Rc::new(materials::Metal::new(&albedo, fuzz));
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    let sphere_material = Box::new(Material::new_metal(albedo, fuzz));
+                    world.add(Sphere::new(center, 0.2, sphere_material));
                 } else {
                     // glass
-                    let sphere_material = Rc::new(materials::Dielectric::new(&1.5));
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material)));
+                    let sphere_material = Box::new(Material::new_dielectric(1.5));
+                    world.add(Sphere::new(center, 0.2, sphere_material));
                 }
             }
         }
     }
 
-    let material1 = Rc::new(materials::Dielectric::new(&1.5));
-    world.add(Box::new(Sphere::new(Vec3::new(0., 1., 0.), 1.0, material1)));
+    let material1 = Box::new(Material::new_dielectric(1.5));
+    world.add(Sphere::new(Vec3::new(0., 1., 0.), 1.0, material1));
 
-    let material2 = Rc::new(materials::Lambertian::new(&Color::new(0.4, 0.2, 0.1)));
-    world.add(Box::new(Sphere::new(
-        Vec3::new(-4., 1., 0.),
-        1.0,
-        material2,
-    )));
+    let material2 = Box::new(Material::new_lambertian(Color::new(0.4, 0.2, 0.1)));
+    world.add(Sphere::new(Vec3::new(-4., 1., 0.), 1.0, material2));
 
-    let material3 = Rc::new(materials::Metal::new(&Color::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Box::new(Sphere::new(Vec3::new(4., 1., 0.), 1.0, material3)));
+    let material3 = Box::new(Material::new_metal(Color::new(0.7, 0.6, 0.5), 0.0));
+    world.add(Sphere::new(Vec3::new(4., 1., 0.), 1.0, material3));
 
     let mut cam = Camera::default();
-    cam.aspect_ratio = 16.0 / 9.0;
+    cam.aspect_ratio = 16.0 as Num / 9.0;
     cam.image_width = 1200;
-    cam.samples_per_pixel = 500;
+    cam.samples_per_pixel = 50;
     cam.max_depth = 50;
 
     cam.vfov = std::f64::consts::PI / 9.0;
@@ -87,6 +82,7 @@ fn main() {
     cam.focus_dist = 10.0;
 
     let mut f = fs::File::create("./render.ppm").unwrap();
-    cam.render(&mut f, &world);
+    cam.initialize();
+    cam.render(&mut f, Arc::new(world));
     drop(f);
 }

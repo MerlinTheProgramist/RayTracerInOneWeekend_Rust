@@ -1,14 +1,15 @@
 use crate::{
     color::{write_color, Color},
-    hittable::Hittable,
+    hittable::hittable_list::HittableList,
     interval::Interval,
     ray::Ray,
     vec3::*,
     Num,
 };
+use crossbeam;
 use log::info;
 use rand::Rng;
-use std::{cmp::max, io::Write};
+use std::{cmp::max, io::Write, sync::Arc};
 
 use log;
 use pretty_env_logger;
@@ -69,29 +70,51 @@ impl Camera {
         }
     }
 
-    pub fn render<W: Write>(&mut self, f: &mut W, world: &dyn Hittable) {
-        self.initialize();
-
+    pub fn render<W: Write>(&self, f: &mut W, world: Arc<HittableList>) {
         pretty_env_logger::init();
 
         write!(f, "P6\n{} {}\n255\n", self.image_width, self.image_height).unwrap();
 
-        for j in 0..self.image_height {
-            for i in 0..self.image_width {
-                info!("Processing pixel [{},{}]", j, i);
+        crossbeam::scope(|s| {
+            for j in 0..self.image_height {
+                let mut threads = Vec::with_capacity(self.image_width as usize);
+                for i in 0..self.image_width {
+                    info!("Processing pixel [{},{}]", j, i);
 
-                let mut pixel_color = Color::ZERO;
-                // multiple samples per pixel
-                for _sample in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&r, self.max_depth, world)
+                    let world = world.clone();
+                    let jh = s.spawn(move |_| {
+                        let mut pixel_color = Color::ZERO;
+                        // multiple samples per pixel
+                        for _sample in 0..self.samples_per_pixel {
+                            let r = self.get_ray(i, j);
+                            pixel_color += self.ray_color(&r, self.max_depth, world.clone());
+                        }
+                        pixel_color
+                    });
+                    threads.push(jh);
                 }
-                write_color(f, &pixel_color, self.samples_per_pixel);
+                for th in threads {
+                    write_color(f, &th.join().unwrap(), self.samples_per_pixel);
+                }
             }
-        }
+        })
+        .unwrap();
+        // for j in 0..self.image_height {
+        //     for i in 0..self.image_width {
+        //         info!("Processing pixel [{},{}]", j, i);
+
+        //         let mut pixel_color = Color::ZERO;
+        //         // multiple samples per pixel
+        //         for _sample in 0..self.samples_per_pixel {
+        //             let r = self.get_ray(i, j);
+        //             pixel_color += self.ray_color(&r, self.max_depth, world)
+        //         }
+        //         write_color(f, &pixel_color, self.samples_per_pixel);
+        //     }
+        // }
     }
 
-    fn ray_color(&self, r: &Ray, depth: i32, world: &dyn Hittable) -> Color {
+    fn ray_color(&self, r: &Ray, depth: i32, world: Arc<HittableList>) -> Color {
         if depth <= 0 {
             return Color::ZERO;
         }
@@ -133,7 +156,7 @@ impl Camera {
         (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 
-    pub fn initialize(&mut self) {
+    pub fn initialize(&mut self) -> &Self {
         self.image_height = max(1, (self.image_width as Num / self.aspect_ratio) as i32);
 
         self.center = self.lookfrom;
@@ -165,6 +188,8 @@ impl Camera {
         let defocus_radius = self.focus_dist * (self.defocus_angle / 2.).tan();
         self.defocus_disk_u = self.u * defocus_radius;
         self.defocus_disk_v = self.v * defocus_radius;
+
+        return self;
     }
 
     fn defocus_disk_sample(&self) -> Vec3 {
