@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{random, Rng};
 
 use crate::Num;
 use std::{fmt::Display, ops};
@@ -15,19 +15,17 @@ impl Vec3 {
         Vec3 { x, y, z }
     }
     pub fn random() -> Vec3 {
-        let mut rand = rand::thread_rng();
         Vec3 {
-            x: rand.gen::<Num>(),
-            y: rand.gen::<Num>(),
-            z: rand.gen::<Num>(),
+            x: random::<Num>(),
+            y: random::<Num>(),
+            z: random::<Num>(),
         }
     }
     pub fn random_range(min: Num, max: Num) -> Vec3 {
-        let mut rand = rand::thread_rng();
         Vec3 {
-            x: min + rand.gen::<Num>() * max,
-            y: min + rand.gen::<Num>() * max,
-            z: min + rand.gen::<Num>() * max,
+            x: min + random::<Num>() * max,
+            y: min + random::<Num>() * max,
+            z: min + random::<Num>() * max,
         }
     }
     // Maybe it should be random_IN_unit_sphere, therefore not normalized

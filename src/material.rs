@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{random, Rng};
 
 use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3::*, Num};
 
@@ -50,8 +50,6 @@ impl Material {
                 }
             }
             Self::Dielectric { ir } => {
-                let mut rand = rand::thread_rng();
-
                 let refraction_ratio = if rec.front_face { 1. / ir } else { ir };
 
                 let unit_direction = normalize(r_in.direction());
@@ -60,7 +58,7 @@ impl Material {
 
                 let cannot_refract = refraction_ratio * sin_theta > 1.0;
                 let direction = if cannot_refract
-                    || Self::reflectance(cos_theta, refraction_ratio) > rand.gen::<Num>()
+                    || Self::reflectance(cos_theta, refraction_ratio) > random::<Num>()
                 {
                     reflect(&unit_direction, &rec.normal)
                 } else {

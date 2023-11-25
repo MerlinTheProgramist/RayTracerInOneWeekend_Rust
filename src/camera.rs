@@ -8,7 +8,7 @@ use crate::{
 };
 use crossbeam;
 use log::info;
-use rand::Rng;
+use rand::random;
 use std::{cmp::max, io::Write, sync::Arc};
 
 use log;
@@ -149,10 +149,8 @@ impl Camera {
         return Ray::new(ray_origin, ray_direction);
     }
     fn pixel_sample_square(&self) -> Vec3 {
-        let mut rng = rand::thread_rng();
-
-        let px = -0.5 + rng.gen::<Num>();
-        let py = -0.5 + rng.gen::<Num>();
+        let px = -0.5 + random::<Num>();
+        let py = -0.5 + random::<Num>();
         (px * self.pixel_delta_u) + (py * self.pixel_delta_v)
     }
 
