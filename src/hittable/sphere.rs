@@ -1,4 +1,4 @@
-use super::{HitRecord, Hittable};
+use super::{HitRecord, Hittable, HittableObject};
 use crate::{interval::Interval, material::Material, ray::Ray, vec3::*, Num};
 
 pub struct Sphere {
@@ -8,14 +8,17 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(c: Point3, r: Num, m: Box<Material>) -> Hittable {
-        Hittable::Sphere(Sphere {
+    pub fn new(c: Point3, r: Num, m: Box<Material>) -> HittableObject {
+        HittableObject::Sphere(Sphere {
             center: c,
             radius: r,
             mat: m,
         })
     }
-    pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
+}
+
+impl Hittable for Sphere {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         let oc = *r.origin() - self.center;
         let a = r.direction().lenght_sqr();
         let half_b = dot(&oc, r.direction());

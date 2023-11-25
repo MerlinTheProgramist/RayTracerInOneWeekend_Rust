@@ -3,7 +3,7 @@ use crate::ray::Ray;
 use super::*;
 
 pub struct HittableList {
-    objects: Vec<Hittable>,
+    objects: Vec<HittableObject>,
 }
 
 impl HittableList {
@@ -17,7 +17,7 @@ impl HittableList {
         self.objects.clear()
     }
 
-    pub fn add(&mut self, object: Hittable) {
+    pub fn add(&mut self, object: HittableObject) {
         self.objects.push(object);
     }
 }

@@ -36,11 +36,15 @@ impl HitRecord {
     }
 }
 
-pub enum Hittable {
+pub trait Hittable {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord>;
+}
+
+pub enum HittableObject {
     Sphere(Sphere),
 }
-impl Hittable {
-    pub fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
+impl Hittable for HittableObject {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         match self {
             Self::Sphere(s) => s.hit(r, ray_t),
         }
