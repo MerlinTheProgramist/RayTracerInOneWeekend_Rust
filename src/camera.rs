@@ -1,6 +1,7 @@
 use crate::{
     color::{write_color, Color},
-    hittable::hittable_list::HittableList,
+    hittable::Hittable,
+    hittable::{hittable_list::HittableList, HittableObject},
     interval::Interval,
     ray::Ray,
     vec3::*,
@@ -9,7 +10,7 @@ use crate::{
 use crossbeam;
 use log::info;
 use rand::random;
-use std::{cmp::max, io::Write, sync::Arc};
+use std::{borrow::Borrow, cmp::max, io::Write, sync::Arc};
 
 use log;
 use pretty_env_logger;
@@ -70,7 +71,7 @@ impl Camera {
         }
     }
 
-    pub fn render<W: Write>(&self, f: &mut W, world: Arc<HittableList>) {
+    pub fn render<W: Write>(&self, f: &mut W, world: Arc<HittableObject>) {
         pretty_env_logger::init();
 
         write!(f, "P6\n{} {}\n255\n", self.image_width, self.image_height).unwrap();
@@ -79,15 +80,17 @@ impl Camera {
             for j in 0..self.image_height {
                 let mut threads = Vec::with_capacity(self.image_width as usize);
                 for i in 0..self.image_width {
-                    info!("Processing pixel [{},{}]", j, i);
+                    // info!("Processing pixel [{},{}]", j, i);
 
-                    let world = world.clone();
+                    let world_clone = world.clone();
                     let jh = s.spawn(move |_| {
                         let mut pixel_color = Color::ZERO;
                         // multiple samples per pixel
                         for _sample in 0..self.samples_per_pixel {
                             let r = self.get_ray(i, j);
-                            pixel_color += self.ray_color(&r, self.max_depth, world.clone());
+
+                            // let l = world_clone.objects[0]; // just a test if i can even assign the world value
+                            pixel_color += self.ray_color(&r, self.max_depth, world_clone.borrow());
                         }
                         pixel_color
                     });
@@ -114,7 +117,7 @@ impl Camera {
         // }
     }
 
-    fn ray_color(&self, r: &Ray, depth: i32, world: Arc<HittableList>) -> Color {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &Arc<HittableObject>) -> Color {
         if depth <= 0 {
             return Color::ZERO;
         }

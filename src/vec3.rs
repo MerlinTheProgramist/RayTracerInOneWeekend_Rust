@@ -3,7 +3,7 @@ use rand::{random, Rng};
 use crate::Num;
 use std::{fmt::Display, ops};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Vec3 {
     pub x: Num,
     pub y: Num,

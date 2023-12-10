@@ -1,3 +1,5 @@
+use log::info;
+
 use super::{HitRecord, Hittable, HittableObject};
 use crate::{aabb::AABB, interval::Interval, material::Material, ray::Ray, vec3::*, Num};
 
@@ -53,6 +55,7 @@ impl Sphere {
 
 impl Hittable for Sphere {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
+        info!("SPHERE HIT!!!");
         let oc = *r.origin() - self.center(*r.time());
         let a = r.direction().lenght_sqr();
         let half_b = dot(&oc, r.direction());
@@ -79,5 +82,8 @@ impl Hittable for Sphere {
         rec.set_face_normal(r, &outward_normal);
 
         return Some(rec);
+    }
+    fn bounding_box(&self) -> AABB {
+        self.bbox
     }
 }

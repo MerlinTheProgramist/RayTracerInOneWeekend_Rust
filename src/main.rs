@@ -1,3 +1,4 @@
+pub mod aabb;
 pub mod camera;
 pub mod color;
 pub mod hittable;
@@ -10,7 +11,7 @@ use std::{fs, sync::Arc};
 
 use camera::Camera;
 use color::Color;
-use hittable::{hittable_list::HittableList, sphere::Sphere};
+use hittable::{bvh_node::BvhNode, hittable_list::HittableList, sphere::Sphere, HittableObject};
 use material::*;
 use rand::Rng;
 use vec3::*;
@@ -67,6 +68,9 @@ fn main() {
 
     let material3 = Box::new(Material::new_metal(Color::new(0.7, 0.6, 0.5), 0.0));
     world.add(Sphere::new(Vec3::new(4., 1., 0.), 1.0, material3));
+
+    // let world = HittableObject::HittableList(world);
+    let world = BvhNode::from_list(&mut world);
 
     let mut cam = Camera::default();
     cam.aspect_ratio = 16.0 as Num / 9.0;
