@@ -1,4 +1,4 @@
-use rand::{random, Rng};
+use rand::random;
 
 use crate::{color::Color, hittable::HitRecord, ray::Ray, vec3::*, Num};
 
@@ -39,11 +39,18 @@ impl Material {
                     scatter_direction = rec.normal;
                 }
 
-                Some((albedo, Ray::new(rec.p, scatter_direction)))
+                Some((
+                    albedo,
+                    Ray::new_timed(rec.p, scatter_direction, *r_in.time()),
+                ))
             }
             Self::Metal { albedo, fuzz } => {
                 let reflected = reflect(&normalize(&r_in.direction()), &rec.normal);
-                let scattered = Ray::new(rec.p, reflected + fuzz * Vec3::random_unit_sphere());
+                let scattered = Ray::new_timed(
+                    rec.p,
+                    reflected + fuzz * Vec3::random_unit_sphere(),
+                    *r_in.time(),
+                );
                 match dot(scattered.direction(), &rec.normal) > 0. {
                     false => None,
                     true => Some((albedo, scattered)),
@@ -65,7 +72,7 @@ impl Material {
                     refract(&unit_direction, &rec.normal, refraction_ratio)
                 };
 
-                let scattered = Ray::new(rec.p, direction);
+                let scattered = Ray::new_timed(rec.p, direction, *r_in.time());
                 Some((Color::new(1., 1., 1.), scattered))
             }
         }

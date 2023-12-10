@@ -42,7 +42,8 @@ fn main() {
                     // diffuse
                     let albedo = Color::random() * &Color::random();
                     let sphere_material = Box::new(Material::new_lambertian(albedo));
-                    world.add(Sphere::new(center, 0.2, sphere_material));
+                    let center2 = center + Vec3::new(0., rand.gen_range(0.0..0.5), 0.);
+                    world.add(Sphere::new_moving(center, center2, 0.2, sphere_material));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Color::random_range(0.5, 1.);
@@ -78,7 +79,7 @@ fn main() {
     cam.lookat = Point3::new(0., 0., 0.);
     cam.vup = Vec3::new(0., 1., 0.);
 
-    cam.defocus_angle = std::f64::consts::PI / 300.;
+    cam.defocus_angle = std::f64::consts::PI / 9000.;
     cam.focus_dist = 10.0;
 
     let mut f = fs::File::create("./render.ppm").unwrap();
