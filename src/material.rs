@@ -14,7 +14,7 @@ pub enum Material {
 impl Material {
     pub fn new_lambertian(albedo: Color) -> Self {
         Self::Lambertian {
-            albedo: Arc::new(TextureType::solid_new(albedo)),
+            albedo: Arc::new(TextureType::new_solid(albedo)),
         }
     }
 

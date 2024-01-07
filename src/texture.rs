@@ -1,8 +1,8 @@
-use std::{hash::BuildHasher, sync::Arc};
+use std::sync::Arc;
 
-use image::GenericImageView;
-
-use crate::{color::Color, interval::Interval, rtw_image::RtwImage, vec3::Point3, Num};
+use crate::{
+    color::Color, interval::Interval, perlin::Perlin, rtw_image::RtwImage, vec3::Point3, Num,
+};
 
 pub enum TextureType {
     SolidColor {
@@ -15,6 +15,10 @@ pub enum TextureType {
     },
     ImageTexture {
         image: RtwImage,
+    },
+    NoiseTexture {
+        noise: Perlin,
+        scale: Num,
     },
 }
 
@@ -57,10 +61,17 @@ impl TextureType {
                     color_scale * pixel[2] as Num,
                 )
             }
+            Self::NoiseTexture { noise, scale } => {
+                // Color::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + noise.noise(&(*p * *scale)))
+                let s = *scale * p;
+
+                // Color::new(1.0, 1.0, 1.0) * noise.turb(s, 7)
+                Color::new(1.0, 1.0, 1.0) * 0.5 * (1.0 + (s.z + 10.0 * noise.turb(s, 7)).sin())
+            }
         }
     }
 
-    pub fn solid_new(color_value: Color) -> Self {
+    pub fn new_solid(color_value: Color) -> Self {
         Self::SolidColor { color_value }
     }
     pub fn solid_from_rgb(red: Num, green: Num, blue: Num) -> Self {
@@ -68,11 +79,17 @@ impl TextureType {
             color_value: Color::new(red, green, blue),
         }
     }
-    pub fn checker_new(scale: Num, even: Arc<TextureType>, odd: Arc<TextureType>) -> Self {
+    pub fn new_checker(scale: Num, even: Arc<TextureType>, odd: Arc<TextureType>) -> Self {
         Self::CheckerTexture {
             inv_scale: 1.0 / scale,
             even,
             odd,
+        }
+    }
+    pub fn new_noise(scale: Num) -> Self {
+        Self::NoiseTexture {
+            scale,
+            noise: Perlin::default(),
         }
     }
 }

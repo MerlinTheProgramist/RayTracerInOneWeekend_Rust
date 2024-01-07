@@ -33,9 +33,9 @@ impl Vec3 {
     }
     pub fn random_range(min: Num, max: Num) -> Vec3 {
         Vec3 {
-            x: min + random::<Num>() * max,
-            y: min + random::<Num>() * max,
-            z: min + random::<Num>() * max,
+            x: rand::thread_rng().gen_range(min..max),
+            y: rand::thread_rng().gen_range(min..max),
+            z: rand::thread_rng().gen_range(min..max),
         }
     }
     // Maybe it should be random_IN_unit_sphere, therefore not normalized
