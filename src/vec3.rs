@@ -10,6 +10,16 @@ pub struct Vec3 {
     pub z: Num,
 }
 
+impl Default for Vec3 {
+    fn default() -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
+    }
+}
+
 impl Vec3 {
     pub fn new(x: Num, y: Num, z: Num) -> Vec3 {
         Vec3 { x, y, z }

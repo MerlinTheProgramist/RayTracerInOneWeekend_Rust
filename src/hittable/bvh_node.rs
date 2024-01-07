@@ -1,4 +1,3 @@
-use log::info;
 use rand::Rng;
 
 use crate::{aabb::AABB, interval::Interval, ray::Ray};

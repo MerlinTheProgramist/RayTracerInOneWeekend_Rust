@@ -1,32 +1,41 @@
 pub mod aabb;
-pub mod camera;
+mod camera;
 pub mod color;
 pub mod hittable;
 pub mod interval;
 pub mod material;
 pub mod ray;
+pub mod rtw_image;
+pub mod texture;
 pub mod vec3;
 
-use std::{fs, sync::Arc};
+use std::{env, fs, sync::Arc};
 
 use camera::Camera;
 use color::Color;
 use hittable::{bvh_node::BvhNode, hittable_list::HittableList, sphere::Sphere, HittableObject};
 use material::*;
 use rand::Rng;
+use rtw_image::RtwImage;
+use texture::TextureType;
 use vec3::*;
 
 type Num = f64;
 
-fn main() {
+fn random_spheres(f: &mut fs::File) {
     let mut rand = rand::thread_rng();
     // World
     let mut world = HittableList::new();
-    let groud_material = Box::new(Material::new_lambertian(Color::new(0.5, 0.5, 0.5)));
+
+    let checker = Arc::new(TextureType::checker_new(
+        0.32,
+        Arc::new(TextureType::solid_new(Color::new(0.2, 0.3, 0.1))),
+        Arc::new(TextureType::solid_new(Color::new(0.9, 0.9, 0.9))),
+    ));
     world.add(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
-        groud_material,
+        Box::new(Material::new_lambertian_textured(checker.clone())),
     ));
 
     for a in -11..11 {
@@ -60,7 +69,8 @@ fn main() {
         }
     }
 
-    let material1 = Box::new(Material::new_dielectric(1.5));
+    // let material1 = Box::new(Material::new_dielectric(1.5));
+    let material1 = Box::new(Material::new_lambertian_textured(checker.clone()));
     world.add(Sphere::new(Vec3::new(0., 1., 0.), 1.0, material1));
 
     let material2 = Box::new(Material::new_lambertian(Color::new(0.4, 0.2, 0.1)));
@@ -69,7 +79,6 @@ fn main() {
     let material3 = Box::new(Material::new_metal(Color::new(0.7, 0.6, 0.5), 0.0));
     world.add(Sphere::new(Vec3::new(4., 1., 0.), 1.0, material3));
 
-    // let world = HittableObject::HittableList(world);
     let world = BvhNode::from_list(&mut world);
 
     let mut cam = Camera::default();
@@ -86,8 +95,88 @@ fn main() {
     cam.defocus_angle = std::f64::consts::PI / 9000.;
     cam.focus_dist = 10.0;
 
-    let mut f = fs::File::create("./render.ppm").unwrap();
     cam.initialize();
-    cam.render(&mut f, Arc::new(world));
-    drop(f);
+    cam.render(f, Arc::new(world));
+}
+
+fn two_spheres(f: &mut fs::File) {
+    let mut world = HittableList::new();
+
+    let checker = Arc::new(TextureType::checker_new(
+        0.01,
+        Arc::new(TextureType::solid_new(Color::new(0.2, 0.3, 0.1))),
+        Arc::new(TextureType::solid_new(Color::new(0.9, 0.9, 0.9))),
+    ));
+
+    world.add(Sphere::new(
+        Point3::new(0.0, -10.0, 0.0),
+        10.0,
+        Box::new(Material::new_lambertian_textured(checker.clone())),
+    ));
+    world.add(Sphere::new(
+        Point3::new(0.0, 10.0, 0.0),
+        10.0,
+        Box::new(Material::new_lambertian_textured(checker.clone())),
+    ));
+
+    let world = BvhNode::from_list(&mut world);
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+
+    cam.vfov = (20.0f64).to_radians();
+    cam.lookfrom = Point3::new(13.0, 2.0, 3.0);
+    cam.lookat = Point3::new(0.0, 0.0, 0.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 0.0;
+
+    cam.initialize();
+    cam.render(f, Arc::new(world));
+}
+
+fn earth(f: &mut fs::File) {
+    let earth_texture = Arc::new(TextureType::ImageTexture {
+        image: RtwImage::new("./assets/earth/albedo.jpg"),
+    });
+    let earth_surface = Box::new(Material::new_lambertian_textured(earth_texture));
+    let globe = Arc::new(Sphere::new(Vec3::default(), 2.0, earth_surface));
+
+    let mut cam = Camera::default();
+
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
+    cam.vfov = (20.0f64).to_radians();
+    cam.lookfrom = Point3::new(0.0, 0.0, 12.0);
+    cam.lookat = Point3::default();
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+    cam.defocus_angle = 0.0;
+
+    cam.initialize();
+    cam.render(f, globe);
+}
+
+fn main() {
+    let mut f = None;
+    let mut scene = 1;
+    for arg in env::args() {
+        if arg.ends_with(".ppm") {
+            f = Some(fs::File::create(arg).expect("Cannot create file"));
+        } else if let Result::Ok(s) = arg.parse() {
+            scene = s;
+        }
+    }
+    let f = f.get_or_insert(fs::File::create("./render.ppm").unwrap());
+
+    match scene {
+        1 => random_spheres(f),
+        2 => two_spheres(f),
+        3 => earth(f),
+        _ => panic!("Unknown scene selected"),
+    }
 }

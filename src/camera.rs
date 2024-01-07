@@ -1,20 +1,20 @@
 use crate::{
     color::{write_color, Color},
     hittable::Hittable,
-    hittable::{hittable_list::HittableList, HittableObject},
+    hittable::HittableObject,
     interval::Interval,
     ray::Ray,
     vec3::*,
     Num,
 };
 use crossbeam;
-use log::info;
+
 use rand::random;
 use std::{borrow::Borrow, cmp::max, io::Write, sync::Arc};
 
-use log;
 use pretty_env_logger;
 
+#[non_exhaustive]
 pub struct Camera {
     pub aspect_ratio: Num,      // Ratio of image width over height
     pub image_width: i32,       // Rendered image width in pixel count

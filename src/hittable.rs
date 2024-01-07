@@ -10,10 +10,12 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub mat: Box<Material>,
     pub t: Num,
+    pub u: Num,
+    pub v: Num,
     pub front_face: bool,
 }
 impl HitRecord {
-    pub fn new(_p: Point3, _t: Num, _m: Box<Material>) -> HitRecord {
+    pub fn new(_p: Point3, _t: Num, _m: Box<Material>, u: Num, v: Num) -> HitRecord {
         HitRecord {
             p: _p,
             normal: Vec3 {
@@ -21,6 +23,8 @@ impl HitRecord {
                 y: 0f64,
                 z: 0f64,
             },
+            u,
+            v,
             mat: _m,
             t: _t,
             front_face: true,
