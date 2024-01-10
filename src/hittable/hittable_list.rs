@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
+use crate::hittable::HittableObject;
 use crate::ray::Ray;
-use crate::HittableObject;
 
 use super::*;
 

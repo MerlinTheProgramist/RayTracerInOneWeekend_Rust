@@ -1,8 +1,9 @@
 use crate::{aabb::AABB, interval::Interval, material::*, ray::Ray, vec3::*, Num};
 
-use self::{bvh_node::BvhNode, hittable_list::HittableList, sphere::Sphere};
+use self::{bvh_node::BvhNode, hittable_list::HittableList, quad::Quad, sphere::Sphere};
 pub mod bvh_node;
 pub mod hittable_list;
+pub mod quad;
 pub mod sphere;
 
 pub struct HitRecord {
@@ -49,11 +50,13 @@ pub enum HittableObject {
     Sphere(Sphere),
     BvhNode(BvhNode),
     HittableList(HittableList),
+    Quad(Quad),
 }
 impl Hittable for HittableObject {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         match self {
             Self::Sphere(s) => s.hit(r, ray_t),
+            Self::Quad(q) => q.hit(r, ray_t),
             Self::BvhNode(n) => n.hit(r, ray_t),
             Self::HittableList(l) => l.hit(r, ray_t),
         }
@@ -61,6 +64,7 @@ impl Hittable for HittableObject {
     fn bounding_box(&self) -> AABB {
         match self {
             Self::Sphere(s) => s.bounding_box(),
+            Self::Quad(q) => q.bounding_box(),
             Self::BvhNode(n) => n.bounding_box(),
             Self::HittableList(l) => l.bounding_box(),
         }

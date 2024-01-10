@@ -26,6 +26,26 @@ impl AABB {
         Self { x, y, z }
     }
 
+    pub fn padded(&self) -> Self {
+        let delta = 0.0001;
+        let new_x = if self.x.size() >= delta {
+            self.x
+        } else {
+            self.x.expand(delta)
+        };
+        let new_y = if self.y.size() >= delta {
+            self.y
+        } else {
+            self.y.expand(delta)
+        };
+        let new_z = if self.z.size() >= delta {
+            self.z
+        } else {
+            self.z.expand(delta)
+        };
+        Self::new(new_x, new_y, new_z)
+    }
+
     pub fn union(a: &Self, b: &Self) -> Self {
         Self::new(
             Interval::union(&a.x, &b.x),
