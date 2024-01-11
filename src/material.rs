@@ -9,6 +9,7 @@ pub enum Material {
     Lambertian { albedo: Arc<TextureType> },
     Metal { albedo: Color, fuzz: Num },
     Dielectric { ir: Num },
+    DiffuseLight { emit: Arc<TextureType> },
 }
 
 impl Material {
@@ -28,6 +29,12 @@ impl Material {
 
     pub fn new_dielectric(ir: Num) -> Self {
         Self::Dielectric { ir }
+    }
+
+    pub fn new_solid_diffuse_light(color_value: Color) -> Self {
+        Self::DiffuseLight {
+            emit: Arc::new(TextureType::SolidColor { color_value }),
+        }
     }
 
     fn reflectance(cosine: Num, ref_idx: Num) -> Num {
@@ -83,6 +90,15 @@ impl Material {
                 let scattered = Ray::new_timed(rec.p, direction, *r_in.time());
                 Some((Color::new(1., 1., 1.), scattered))
             }
+            Self::DiffuseLight { emit: _ } => None,
+        }
+    }
+
+    pub fn emitted(&self, u: Num, v: Num, p: &Point3) -> Color {
+        match self {
+            Self::DiffuseLight { emit } => emit.value(u, v, p),
+            // for every other material emission is zero (black)
+            _ => Color::ZERO,
         }
     }
 }

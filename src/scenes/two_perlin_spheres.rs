@@ -1,5 +1,6 @@
 use crate::{
     camera::Camera,
+    color::Color,
     hittable::{hittable_list::HittableList, sphere::Sphere, HittableObject},
     material::Material,
     texture::TextureType,
@@ -28,6 +29,7 @@ pub fn two_perlin_spheres(f: &mut fs::File) {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color::new(0.70, 0.80, 1.00);
 
     cam.vfov = (20.0f64).to_radians();
     cam.lookfrom = Point3::new(13.0, 2.0, 3.0);

@@ -42,24 +42,24 @@ impl Vec3 {
     pub fn random_unit_sphere() -> Vec3 {
         let mut rand = rand::thread_rng();
         // ON unit sphere
-        let theta = rand.gen_range((0.)..std::f64::consts::PI * 2.);
-        let phi = (rand.gen_range((-1.)..1.) as Num).acos();
-        Vec3 {
-            x: phi.sin() * theta.cos(),
-            y: phi.sin() * theta.sin(),
-            z: phi.cos(),
-        }
-        // IN unit sphere
-        // loop {
-        //     let p = Vec3::new(
-        //         rand.gen_range((-1.)..1.),
-        //         rand.gen_range((-1.)..1.),
-        //         rand.gen_range((-1.)..1.),
-        //     );
-        //     if p.lenght_sqr() < 1. {
-        //         return p;
-        //     }
+        // let theta = rand.gen_range((0.)..std::f64::consts::PI * 2.);
+        // let phi = (rand.gen_range((-1.)..1.) as Num).acos();
+        // Vec3 {
+        //     x: phi.sin() * theta.cos(),
+        //     y: phi.sin() * theta.sin(),
+        //     z: phi.cos(),
         // }
+        // IN unit sphere
+        loop {
+            let p = Vec3::new(
+                rand.gen_range((-1.)..1.),
+                rand.gen_range((-1.)..1.),
+                rand.gen_range((-1.)..1.),
+            );
+            if p.lenght_sqr() < 1. {
+                return p;
+            }
+        }
     }
     pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
         let res = Vec3::random_unit_sphere();

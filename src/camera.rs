@@ -14,12 +14,22 @@ use std::{borrow::Borrow, cmp::max, io::Write, sync::Arc};
 
 use pretty_env_logger;
 
+macro_rules! return_on_none {
+    ($e:expr; return $ret:expr) => {
+        match $e {
+            None => return $ret,
+            Some(v) => v,
+        }
+    };
+}
+
 #[non_exhaustive]
 pub struct Camera {
     pub aspect_ratio: Num,      // Ratio of image width over height
     pub image_width: i32,       // Rendered image width in pixel count
     pub samples_per_pixel: i32, // Count of random samples for each pixel
     pub max_depth: i32,         // Maximum number of ray bounces into scene
+    pub background: Color,      // Scene background color
 
     pub vfov: Num,        // Vertical view angle (field of view)
     pub lookfrom: Point3, // Point camera is looking from
@@ -50,6 +60,7 @@ impl Camera {
             samples_per_pixel: 10,
             image_height: 100,
             max_depth: 10,
+            background: Color::ZERO,
 
             vfov: std::f64::consts::PI / 2.,
             lookfrom: Vec3::new(0., 0., -1.),
@@ -121,21 +132,32 @@ impl Camera {
         if depth <= 0 {
             return Color::ZERO;
         }
-        if let Some(rec) = world.hit(r, Interval::new(0.001, Ray::INFINITY)) {
-            // let direction = Vec3::random_on_hemisphere(&rec.normal);
-            // Lambertial distribution
-            // let direction = rec.normal + Vec3::random_unit_sphere();
-            if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec) {
-                return attenuation * &self.ray_color(&scattered, depth - 1, world);
-            }
-            return Color::ZERO;
-            // return 0.5 * &self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
-            // return 0.5 * (rec.normal + Color::new(1., 1., 1.));
-        }
 
-        let normal = normalize(r.direction());
-        let a = 0.5 * (normal.y + 1.0);
-        return (1. - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0);
+        let rec = return_on_none!(world.hit(r, Interval::new(0.001, Ray::INFINITY)); return self.background);
+
+        let color_from_emmision = rec.mat.emitted(rec.u, rec.v, &rec.p);
+
+        let (attenuation, scattered) =
+            return_on_none!(rec.mat.scatter(r,&rec); return color_from_emmision);
+
+        let color_from_scatter = attenuation * &self.ray_color(&scattered, depth - 1, world);
+
+        color_from_emmision + color_from_scatter
+        //     if let Some(rec) = world.hit(r, Interval::new(0.001, Ray::INFINITY)) {
+        //         // let direction = Vec3::random_on_hemisphere(&rec.normal);
+        //         // Lambertial distribution
+        //         // let direction = rec.normal + Vec3::random_unit_sphere();
+        //         if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec) {
+        //             return attenuation * &self.ray_color(&scattered, depth - 1, world);
+        //         }
+        //         return Color::ZERO;
+        //         // return 0.5 * &self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
+        //         // return 0.5 * (rec.normal + Color::new(1., 1., 1.));
+        //     }
+
+        //     let normal = normalize(r.direction());
+        //     let a = 0.5 * (normal.y + 1.0);
+        //     return (1. - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0);
     }
     fn get_ray(&self, i: i32, j: i32) -> Ray {
         let pixel_center =

@@ -3,9 +3,8 @@ use rand::Rng;
 use crate::{
     camera::Camera,
     color::Color,
-    hittable::{hittable_list::HittableList, sphere::Sphere, bvh_node::BvhNode},
+    hittable::{bvh_node::BvhNode, hittable_list::HittableList, sphere::Sphere},
     material::Material,
-    texture::TextureType,
     vec3::{Point3, Vec3},
     Num,
 };
@@ -16,15 +15,10 @@ pub fn random_spheres(f: &mut fs::File) {
     // World
     let mut world = HittableList::new();
 
-    let checker = Arc::new(TextureType::new_checker(
-        0.32,
-        Arc::new(TextureType::new_solid(Color::new(0.2, 0.3, 0.1))),
-        Arc::new(TextureType::new_solid(Color::new(0.9, 0.9, 0.9))),
-    ));
     world.add(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
-        Box::new(Material::new_lambertian_textured(checker.clone())),
+        Box::new(Material::new_lambertian(Color::new(0.5, 0.5, 0.5))),
     ));
 
     for a in -11..11 {
@@ -58,8 +52,7 @@ pub fn random_spheres(f: &mut fs::File) {
         }
     }
 
-    // let material1 = Box::new(Material::new_dielectric(1.5));
-    let material1 = Box::new(Material::new_lambertian_textured(checker.clone()));
+    let material1 = Box::new(Material::new_dielectric(1.5));
     world.add(Sphere::new(Vec3::new(0., 1., 0.), 1.0, material1));
 
     let material2 = Box::new(Material::new_lambertian(Color::new(0.4, 0.2, 0.1)));
@@ -72,9 +65,10 @@ pub fn random_spheres(f: &mut fs::File) {
 
     let mut cam = Camera::default();
     cam.aspect_ratio = 16.0 as Num / 9.0;
-    cam.image_width = 1200;
-    cam.samples_per_pixel = 50;
+    cam.image_width = 2560;
+    cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color::new(0.70, 0.80, 1.00);
 
     cam.vfov = std::f64::consts::PI / 9.0;
     cam.lookfrom = Point3::new(13., 2., 3.);

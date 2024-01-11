@@ -12,3 +12,6 @@ pub use two_spheres::two_spheres;
 
 pub mod random_spheres;
 pub use random_spheres::random_spheres;
+
+pub mod simple_light;
+pub use simple_light::simple_light;

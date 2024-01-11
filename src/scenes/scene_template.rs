@@ -15,6 +15,8 @@ pub fn scene_name(f: &mut fs::File) {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = Color::new(0.70, 0.80, 1.00);
+
     cam.vfov = (20.0f64).to_radians();
     cam.lookfrom = Point3::new(0.0, 0.0, 12.0);
     cam.lookat = Point3::default();

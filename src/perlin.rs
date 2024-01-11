@@ -81,9 +81,9 @@ impl Perlin {
             for j in 0..2 {
                 for k in 0..2 {
                     let weight_v = Vec3::new(u - i as Num, v - j as Num, w - k as Num);
-                    accum += (i as Num * uu + (1.0 - i as Num) * (1.0 - uu))
-                        * (j as Num * vv + (1.0 - j as Num) * (1.0 - vv))
-                        * (k as Num * ww + (1.0 - k as Num) * (1.0 - ww))
+                    accum += (i as Num * uu + (1 - i) as Num * (1.0 - uu))
+                        * (j as Num * vv + (1 - j) as Num * (1.0 - vv))
+                        * (k as Num * ww + (1 - k) as Num * (1.0 - ww))
                         * dot(&c[i as usize][j as usize][k as usize], &weight_v);
                 }
             }
@@ -91,11 +91,15 @@ impl Perlin {
         return accum;
     }
 
-    pub fn turb(&self, mut p: Point3, depth: i32) -> Num {
+    pub fn turb(&self, p: Point3) -> Num {
+        self.turb_with_depth(p, 7)
+    }
+
+    pub fn turb_with_depth(&self, mut p: Point3, depth: i32) -> Num {
         let mut accum = 0.0;
         let mut weight = 1.0;
 
-        for _i in 0..depth {
+        for _ in 0..depth {
             accum += weight * self.noise(&p);
             weight *= 0.5;
             p *= 2.0;

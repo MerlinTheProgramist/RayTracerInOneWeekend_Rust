@@ -34,6 +34,7 @@ fn main() {
         3 => earth(f),
         4 => two_perlin_spheres(f),
         5 => quads(f),
+        6 => simple_light(f),
         _ => panic!("Unknown scene selected"),
     }
 }
